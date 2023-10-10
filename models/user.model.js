@@ -33,8 +33,16 @@ const userSchema = new mongoose.Schema({
 	isVerified: {
 		type: Boolean,
 	},
+	resetToken: {
+		type: String,
+	},
 	tokenExpiration: {
 		type: Date,
+	},
+	role: {
+		type: String,
+		enum: ["TEAMMEMBER", "CAPTAIN", "ADMIN"],
+		default: "TEAMMEMBER",
 	},
 });
 

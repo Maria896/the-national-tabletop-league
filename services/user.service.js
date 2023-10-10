@@ -180,6 +180,78 @@ export const googlelogin = async (tokenId) => {
 		},
 	};
 };
+export const forgotPasword = async (email) => {
+	const user = await User.findOne({ email });
+	console;
+	if (!user) {
+		throw {
+			status: 401,
+			message: "Invalid Email",
+		};
+	}
+	const token = generateVerificationToken();
+
+	user.resetToken = token;
+
+	user.tokenExpiration = Date.now() + 3600000;
+
+	await user.save();
+	//send email
+	transporter.sendMail(
+		{
+			to: user.email,
+			from: "maria@gmail.com",
+			subject: "password Reset",
+			html: `<h2>Reset Password</h2>
+        <a href="api/auth/reset-password/${token}">Click Here to password Reset </a>
+        `,
+		},
+		(error, email) => {
+			if (error) {
+				console.log({ error });
+				throw {
+					status: 400,
+					message: "error while sending email",
+				};
+			}
+		}
+	);
+	return {
+		successs: true,
+		message: "reset Password Email has been Sent",
+	};
+};
+
+export const resetUserPasword = async (password, confirmPassword, token) => {
+	const user = await User.findOne({
+		resetToken: token,
+	});
+
+	if (!user) {
+		throw {
+			status: 400,
+			message: "link expired...",
+		};
+	}
+
+	if (password !== confirmPassword) {
+		throw {
+			status: 400,
+			message: "password and confirm password doesn't match",
+		};
+	}
+
+	const hashPassword = hashedPassword(password);
+	user.password = hashPassword;
+	user.resetToken = undefined;
+	user.tokenExpiration = undefined;
+
+	await user.save();
+	return {
+		status: 200,
+		message: "password updated...",
+	};
+};
 // Function for hashed password
 const hashedPassword = (password) => {
 	const hashedPassword = bcrypt.hashSync(password, 10);

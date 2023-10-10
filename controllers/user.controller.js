@@ -1,4 +1,10 @@
-import { register, verifyUserEmail, login } from "../services/user.service.js";
+import {
+	register,
+	verifyUserEmail,
+	login,
+	forgotPasword,
+	resetUserPasword,
+} from "../services/user.service.js";
 
 // Path     :   /api/user/register
 // Method   :   Post
@@ -72,5 +78,27 @@ export const googlelogin = async (req, res) => {
 		const { status } = err;
 		const s = status ? status : "500";
 		res.status(s).send({ message: err.message });
+	}
+};
+
+export const forgotPassword = async (req, res) => {
+	try {
+		const { email } = req.body;
+
+		res.json(await forgotPasword(email));
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
+};
+
+// reset password
+export const resetUserPassword = async (req, res) => {
+	try {
+		const { password, confirmPassword } = req.body;
+
+		const { token } = req.params;
+		res.json(await resetUserPasword(password, confirmPassword, token));
+	} catch (error) {
+		res.status(500).json({ message: error.message });
 	}
 };
