@@ -39,10 +39,9 @@ const userSchema = new mongoose.Schema({
 	tokenExpiration: {
 		type: Date,
 	},
-	role: {
+	globalRole: {
 		type: String,
-		enum: ["TEAMMEMBER", "CAPTAIN", "ADMIN"],
-		default: "TEAMMEMBER",
+		enum: ["admin", "player", "captain"],
 	},
 });
 

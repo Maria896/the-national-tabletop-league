@@ -1,7 +1,9 @@
 import Team from "../models/team.model.js";
 import User from "../models/user.model.js";
 import { transporter } from "../utils/email.js";
+import crypto from "crypto";
 import mongoose from "mongoose";
+import UserTeam from "../models/userteam.model.js";
 
 export const createNewTeam = async (teamName, logo, elo, region, creatorId) => {
 	let team;
@@ -125,6 +127,64 @@ export const removeTeamMember = async (userId, teamId, loggedInUserId) => {
 		};
 	}
 };
+export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
+	const findUser = await User.findOne({ email: email });
+	const findTeam = await Team.findOne({ _id: teamId });
+	if (!findUser) {
+		throw {
+			status: 401,
+			message: "Send Registration link",
+		};
+	}
+	if (!findTeam || findTeam.creatorId != teamCreatorId) {
+		throw {
+			status: 401,
+			message: "Team not found",
+		};
+	}
+	const verificationToken = generateVerificationToken();
+	await transporter.sendMail({
+		from: "admin@gmail.com",
+		to: email,
+		subject: "Welcome To Our Organization",
+		html: `<p>Sending Invitation to join NTL. Token : ${verificationToken}</p>`,
+	});
+	const userId = findUser._id;
+	const filter = { _id: userId };
+	const update = { verificationToken: verificationToken };
+	await User.updateOne(filter, update);
+	return {
+		status: 201,
+		message: "Invitation sent.",
+	};
+};
+
+export const acceptInvitation = async (token, teamId) => {
+	const user = await User.findOne({ _id: "652983460eda9b1f8a771f2f" });
+	console.log(user);
+	if (!user) {
+		throw {
+			status: 404,
+			message: "Invalid link",
+		};
+	} else {
+		const userId = user._id;
+		const filter = { _id: userId };
+		const update = { verificationToken: null };
+		await User.updateOne(filter, update);
+		const newmember = await UserTeam.create({
+			userId: user._id,
+			teamId: teamId,
+			role: "player",
+		});
+		newmember.save();
+		await Team.updateOne(teamId, { inviteTeamMember: user.email });
+		return {
+			status: 201,
+			message: "Request accepted",
+		};
+	}
+};
 
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
@@ -139,4 +199,9 @@ const sendEmailToTeamMember = async (to) => {
 	} catch (error) {
 		console.log("Email not sent", error);
 	}
+};
+// Function for creating verification token
+const generateVerificationToken = () => {
+	const buffer = crypto.randomBytes(20);
+	return buffer.toString("hex");
 };

@@ -1,6 +1,8 @@
 import {
+	acceptInvitation,
 	addNewTeamMember,
 	createNewTeam,
+	inviteTeamMember,
 	promoteTeamMember,
 	removeTeamMember,
 } from "../services/team.service.js";
@@ -37,7 +39,8 @@ export const createTeam = async (req, res) => {
 export const addTeamMember = async (req, res) => {
 	try {
 		const { email } = req.body;
-		const { teamId } = req.params;
+		const teamId = req.params.teamId;
+		console.log(req.params);
 		const { status, message } = await addNewTeamMember(email, teamId);
 		res.send({
 			status: status,
@@ -88,5 +91,45 @@ export const removeMember = async (req, res) => {
 		});
 	} catch (error) {
 		res.status(500).send({ message: error.message });
+	}
+};
+// Path     :   /api/team/invite-new-member/:teamId
+// Method   :   Put
+// Access   :   Private
+// Desc     :   Invite new team member
+export const inviteNewTeamMember = async (req, res) => {
+	try {
+		const { email } = req.body;
+		const teamId = req.params.teamId;
+		const teamCreatorId = req.userId;
+		const { status, message } = await inviteTeamMember(
+			email,
+			teamId,
+			teamCreatorId
+		);
+		console.log(status);
+		res.send({
+			status: status,
+			message: message,
+		});
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+// Path     :   /api/team/accept-invitation/:token/:teamId
+// Method   :   Put
+// Access   :   Private
+// Desc     :   Accept invitation to join NTL
+export const acceptInvitationFromOwner = async (req, res) => {
+	try {
+		const { token, teamId } = req.params;
+		console.log(token);
+		const { status, message } = await acceptInvitation(token, teamId);
+		res.send({
+			status: status,
+			message: message,
+		});
+	} catch (error) {
+		res.status(500).json({ message: error.message });
 	}
 };
