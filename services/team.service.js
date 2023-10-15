@@ -31,61 +31,23 @@ export const createNewTeam = async (teamName, logo, elo, region, creatorId) => {
 			message: "Error while creating team",
 		};
 	}
+	await UserTeam.create({
+		userId: team.creatorId,
+		teamId: team._id,
+		role: "captain",
+	});
 	return {
 		status: 201,
 		message: "Team created successfully..",
 	};
 };
 
-export const addNewTeamMember = async (email, teamId) => {
-	const teamMember = await User.findOne({ email: email });
-
-	if (!teamMember) {
-		throw {
-			status: 409,
-			message: "User Not Found Please send registration link...",
-		};
-	} else {
-		let team = await Team.findOne({ _id: teamId });
-
-		if (!team) {
-			throw {
-				status: 409,
-				message: "Team name Not Found",
-			};
-		}
-
-		if (!team.teamMembers.includes(teamMember._id)) {
-			const newTeamMembers = [...team.teamMembers, teamMember._id];
-			const addTeamMember = await Team.findByIdAndUpdate(
-				teamId,
-				{ teamMembers: newTeamMembers },
-				{
-					new: true,
-				}
-			);
-			await sendEmailToTeamMember(teamMember.email);
-			// Return a success response
-			return {
-				status: 200,
-				message: "Member added successfully...",
-			};
-		} else {
-			return res.json({ message: "Already exists" });
-		}
-	}
-};
-
-export const promoteTeamMember = async (userId, role) => {
-	const teamMember = await User.findOne({ _id: userId });
+export const promoteTeamMember = async (userId, teamId, role) => {
+	const teamMember = await UserTeam.findOne({ userId: userId, teamId: teamId });
 
 	if (teamMember) {
-		const promoteMember = await User.findOneAndUpdate(
-			new mongoose.Types.ObjectId(userId),
-			{
-				role: role,
-			}
-		);
+		teamMember.role = role;
+		teamMember.save();
 		return {
 			status: 200,
 			message: "Member Promoted to  Captain...",
@@ -99,34 +61,37 @@ export const promoteTeamMember = async (userId, role) => {
 };
 
 export const removeTeamMember = async (userId, teamId, loggedInUserId) => {
-	const loggedInUser = await User.findOne({ _id: loggedInUserId });
-	const isTeamMember = await User.findOne({ _id: userId });
-	if (isTeamMember && isTeamMember.role !== "CAPTAIN") {
-		const findTeam = await Team.findOne({ _id: teamId });
-		if (findTeam && loggedInUser.role === "CAPTAIN") {
-			findTeam.teamMembers = findTeam.teamMembers.filter(
-				(member) => member != userId
-			);
-			console.log(findTeam.teamMembers);
-			await findTeam.save();
-
+	const isAuthorizedUser = await UserTeam.findOne({
+		userId: loggedInUserId,
+		teamId: teamId,
+	});
+	const isTeamMember = await UserTeam.findOne({
+		userId: userId,
+		teamId: teamId,
+	});
+	if (isAuthorizedUser && isAuthorizedUser.role == "captain") {
+		if (isTeamMember.role != "captain") {
+			const removeMember = await UserTeam.deleteOne({ _id: isTeamMember._id });
 			return {
 				status: 200,
+				success: true,
 				message: "Member Removed...",
 			};
 		} else {
 			throw {
 				status: 409,
-				message: "Team name Not Found or only captain can perform this action",
+				message: "Captains cannot remove captains",
 			};
 		}
 	} else {
 		throw {
 			status: 409,
-			message: "Team member Not Found",
+			success: false,
+			message: "Only captains can remove players",
 		};
 	}
 };
+
 export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
 	const findUser = await User.findOne({ email: email });
 	const findTeam = await Team.findOne({ _id: teamId });
@@ -140,6 +105,17 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
 		throw {
 			status: 401,
 			message: "Team not found",
+		};
+	}
+	const findTeamMember = await UserTeam.findOne({
+		userId: findUser._id,
+		teamId: teamId,
+	});
+	if (findTeamMember) {
+		throw {
+			status: 404,
+			success: false,
+			message: "Already Member of your team",
 		};
 	}
 	const verificationToken = generateVerificationToken();
@@ -160,11 +136,12 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
 };
 
 export const acceptInvitation = async (token, teamId) => {
-	const user = await User.findOne({ _id: "652983460eda9b1f8a771f2f" });
-	console.log(user);
+	const user = await User.findOne({ verificationToken: token });
+
 	if (!user) {
 		throw {
 			status: 404,
+			success: false,
 			message: "Invalid link",
 		};
 	} else {
@@ -177,15 +154,37 @@ export const acceptInvitation = async (token, teamId) => {
 			teamId: teamId,
 			role: "player",
 		});
-		newmember.save();
-		await Team.updateOne(teamId, { inviteTeamMember: user.email });
+		await newmember.save();
 		return {
 			status: 201,
+			success: true,
 			message: "Request accepted",
 		};
 	}
 };
 
+export const leaveTeam = async (teamId, loggedInUserId) => {
+	const isAuthorizedUser = await UserTeam.findOne({
+		userId: loggedInUserId,
+		teamId: teamId,
+	});
+	if (isAuthorizedUser) {
+		const removeMember = await UserTeam.deleteOne({
+			_id: isAuthorizedUser._id,
+		});
+		return {
+			status: 200,
+			success: true,
+			message: "Team leaved...",
+		};
+	} else {
+		throw {
+			status: 409,
+			success: false,
+			message: "Player not found...",
+		};
+	}
+};
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
 	try {
