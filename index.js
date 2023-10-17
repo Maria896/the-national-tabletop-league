@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import ConnectDB from "./config/db.js";
 import userRoutes from "./routes/user.route.js";
 import teamRoutes from "./routes/team.route.js";
-
+import eventRoutes from "./routes/event.route.js";
 
 const app = express();
 dotenv.config();
@@ -18,7 +18,7 @@ app.use(cors());
 
 app.use("/api/user", userRoutes);
 app.use("/api/team", teamRoutes);
-
+app.use("/api/event", eventRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
