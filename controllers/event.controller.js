@@ -1,4 +1,4 @@
-import { createNewEvent } from "../services/event.service.js";
+import { addTeam, createNewEvent } from "../services/event.service.js";
 
 // Path     :   /api/event/create-event
 // Method   :   Post
@@ -19,6 +19,26 @@ export const createEvent = async (req, res) => {
 			rosterRevealDate,
 			creatorId
 		);
+		res.send({
+			status: status,
+			message: message,
+		});
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+// Path     :   /api/event/add-team/:eventId
+// Method   :   Put
+// Access   :   Private
+// Desc     :   Add team in an event
+export const addNewTeam = async (req, res) => {
+	try {
+		const { teamName } = req.body;
+		const { eventId } = req.params;
+		const userId = req.userId;
+
+		const { status, message } = await addTeam(userId, teamName, eventId);
 		res.send({
 			status: status,
 			message: message,
