@@ -11,7 +11,7 @@ const userTeamSchema = new mongoose.Schema({
 	},
 	role: {
 		type: String,
-		enum: ["admin", "player", "captain"],
+		enum: ["player", "captain"],
 		default: "player",
 	},
 });

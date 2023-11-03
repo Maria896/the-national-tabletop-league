@@ -1,5 +1,6 @@
 import Event from "../models/event.model.js";
 import Team from "../models/team.model.js";
+import { isCaptain } from "../middleware/captain.middleware.js";
 
 export const createNewEvent = async (
   name,
@@ -127,5 +128,42 @@ export const removeTeam = async (userId, teamName, eventId) => {
       success: true,
       message: "Team removed successfully..",
     };
+  }
+};
+
+export const createRoaster = async (userId, eventId, teamId, teamMembers) => {
+  const findEvent = Event.findOne({
+    _id: eventId,
+    creatorId: userId,
+    participatingTeams: teamId,
+  });
+  if (!findEvent) {
+    throw {
+      status: 409,
+      success: false,
+      message: "Event not found...",
+    };
+  }
+  const captain = isCaptain(userId, teamId);
+  if (captain) {
+    const checkTeamMember = userteamModel.findOne({ userId, teamId });
+    if (checkTeamMember) {
+      const filter = { _id: eventId, creatorId: userId };
+      const newUser = {
+        userId: userId
+      };
+      const update = {
+        $push: {
+          roster: newUser,
+        },
+      };
+      Event.updateOne(filter, update, (err, result) => {
+        if (err) {
+          console.error(err);
+        } else {
+          console.log(result); 
+        }
+      });
+    }
   }
 };
