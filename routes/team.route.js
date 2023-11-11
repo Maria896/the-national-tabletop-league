@@ -2,6 +2,7 @@ import express from "express";
 import {
   acceptInvitationFromOwner,
   createTeam,
+  getAllTeams,
   inviteNewTeamMember,
   leaveNtlTeam,
   promoteMember,
@@ -18,5 +19,6 @@ router.put("/accept-invitation/:token/:teamId", acceptInvitationFromOwner);
 router.put("/promote-member/:userId/:teamId", authHandler, promoteMember);
 router.put("/remove-member/:userId/:teamId", authHandler, removeMember);
 router.delete("/leave-team/:teamId", authHandler, leaveNtlTeam);
+router.get("/", authHandler, getAllTeams);
 
 export default router;

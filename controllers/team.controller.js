@@ -1,6 +1,7 @@
 import {
   acceptInvitation,
   createNewTeam,
+  getTeams,
   inviteTeamMember,
   leaveTeam,
   promoteTeamMember,
@@ -20,7 +21,6 @@ export const createTeam = async (req, res) => {
     if (req.file) {
       logo = req.file.filename;
     }
-    console.log(req.file);
 
     const { status, message } = await createNewTeam(
       teamName,
@@ -132,6 +132,23 @@ export const leaveNtlTeam = async (req, res) => {
     res.send({
       status: status,
       message: message,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+// Path     :   /api/team/
+// Method   :   Get
+// Access   :   Private
+// Desc     :   Get All teams
+export const getAllTeams = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const { status, message, teams } = await getTeams(userId);
+    res.send({
+      status: status,
+      message: message,
+      teams,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

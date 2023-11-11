@@ -7,6 +7,7 @@ import {
   forgotPassword,
   resetUserPassword,
   getAllUsers,
+  updateUser,
 } from "../controllers/user.controller.js";
 import { authHandler } from "../middleware/auth.middleware.js";
 
@@ -19,5 +20,11 @@ router.post("/google-login", googlelogin);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetUserPassword);
 router.get("/", authHandler, getAllUsers);
+router.put(
+  "/edit-profile/:id",
+  authHandler,
+  upload.single("profileImage"),
+  updateUser
+);
 
 export default router;

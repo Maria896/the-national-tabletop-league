@@ -139,6 +139,35 @@ export const getUsers = async (userId) => {
     };
   }
 };
+export const updateProfile = async (
+  userId,
+  firstName,
+  lastName,
+  email,
+  region,
+  state,
+  profileImage
+) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw {
+      status: 404,
+      message: "User not found",
+    };
+  }
+  user.firstName = firstName;
+  user.lastName = lastName;
+  user.email = email;
+  user.region = region;
+  user.state = state;
+  user.profileImage = profileImage;
+
+  await user.save();
+  return {
+    status: 200,
+    message: "Profile updated successfully",
+  };
+};
 export const googlelogin = async (tokenId) => {
   console.log("google login");
   const response = client.verifyIdToken({

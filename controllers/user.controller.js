@@ -82,6 +82,35 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// Path     :   /api/user/edit-profile/:id
+// Method   :   Put
+// Access   :   Private
+// Desc     :   Update User Profile
+export const updateUser = async (req, res) => {
+  const { firstName, lastName, email, region, state } = req.body;
+  let profileImage;
+  if (req.file) {
+    profileImage = req.file.filename;
+  }
+  const userId = req.userId;
+  try {
+    const { status, message } = await updateProfile(
+      userId,
+      firstName,
+      lastName,
+      email,
+      region,
+      state,
+      profileImage
+    );
+    res.send({
+      status: status,
+      message: message,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // Path     :   /api/user/google-login
 // Method   :   Post
 // Access   :   Public

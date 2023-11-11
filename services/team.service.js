@@ -185,6 +185,24 @@ export const leaveTeam = async (teamId, loggedInUserId) => {
     };
   }
 };
+export const getTeams = async (userId) => {
+  const checkUser = await User.findOne({ _id: userId });
+  if (checkUser.globalRole === "super admin") {
+    const teams = await Team.find();
+    return {
+      status: 200,
+      message: "All Teams..",
+      teams,
+    };
+  } else if (checkUser.globalRole === "player") {
+    const teams = await UserTeam.find({ userId: userId });
+    return {
+      status: 200,
+      message: "All Teams..",
+      teams,
+    };
+  }
+};
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
   try {
