@@ -3,6 +3,7 @@ import {
   acceptInvitationFromOwner,
   createTeam,
   getAllTeams,
+  getTeamById,
   inviteNewTeamMember,
   leaveNtlTeam,
   promoteMember,
@@ -20,5 +21,6 @@ router.put("/promote-member/:userId/:teamId", authHandler, promoteMember);
 router.put("/remove-member/:userId/:teamId", authHandler, removeMember);
 router.delete("/leave-team/:teamId", authHandler, leaveNtlTeam);
 router.get("/", authHandler, getAllTeams);
+router.get("/:teamId", authHandler, getTeamById);
 
 export default router;

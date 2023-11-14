@@ -1,6 +1,7 @@
 import {
   acceptInvitation,
   createNewTeam,
+  findTeamById,
   getTeams,
   inviteTeamMember,
   leaveTeam,
@@ -149,6 +150,23 @@ export const getAllTeams = async (req, res) => {
       status: status,
       message: message,
       teams,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+// Path     :   /api/team/:id
+// Method   :   Get
+// Access   :   Private
+// Desc     :   Get team by id
+export const getTeamById = async (req, res) => {
+  const { teamId } = req.params;
+  try {
+    const { status, message, team } = await findTeamById(teamId);
+    res.send({
+      status: status,
+      message: message,
+      team,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

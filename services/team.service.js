@@ -203,6 +203,22 @@ export const getTeams = async (userId) => {
     };
   }
 };
+export const findTeamById = async (teamId) => {
+  const team = await Team.findOne({ _id: teamId });
+  if (team) {
+    return {
+      status: 200,
+      message: "Team found..",
+      team,
+    };
+  } else {
+    throw {
+      status: 404,
+      success: false,
+      message: "Team not found",
+    };
+  }
+};
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
   try {
