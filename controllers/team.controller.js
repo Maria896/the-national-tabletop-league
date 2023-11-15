@@ -144,6 +144,7 @@ export const leaveNtlTeam = async (req, res) => {
 // Desc     :   Get All teams
 export const getAllTeams = async (req, res) => {
   const userId = req.userId;
+  console.log(userId);
   try {
     const { status, message, teams } = await getTeams(userId);
     res.send({

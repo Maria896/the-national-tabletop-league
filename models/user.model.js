@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema({
   globalRole: {
     type: String,
     enum: ["super admin", "player", "admin"],
+    default: "player",
   },
 });
 
