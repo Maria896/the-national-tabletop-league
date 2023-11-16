@@ -203,6 +203,12 @@ export const getTeams = async (userId) => {
 
     const teamIds = getTeamIds(userTeams);
     const teams = await Team.find({ _id: { $in: teamIds } });
+
+    for (const team of teams) {
+      const teamPlayers = getTeamPlayers(team._id);
+      team.teamPlayers = teamPlayers;
+    }
+
     return {
       status: 200,
       message: "All Teams..",
@@ -212,11 +218,33 @@ export const getTeams = async (userId) => {
 };
 export const findTeamById = async (teamId) => {
   const team = await Team.findOne({ _id: teamId });
+  const teamPlayers = getTeamPlayers(teamId);
   if (team) {
     return {
       status: 200,
       message: "Team found..",
       team,
+      teamPlayers,
+    };
+  } else {
+    throw {
+      status: 404,
+      success: false,
+      message: "Team not found",
+    };
+  }
+};
+export const getTeamPlayers = async (teamId) => {
+  const team = await Team.findOne({ _id: teamId });
+  if (team) {
+    const userTeams = await UserTeam.find({ teamId: teamId });
+    const userIds = userTeams.map((teamPlayer) => teamPlayer.userId);
+
+    const teamPlayers = await User.find({ _id: { $in: userIds } });
+    return {
+      status: 200,
+      message: "Team Players found..",
+      teamPlayers,
     };
   } else {
     throw {

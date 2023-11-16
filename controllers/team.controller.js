@@ -163,11 +163,12 @@ export const getAllTeams = async (req, res) => {
 export const getTeamById = async (req, res) => {
   const { teamId } = req.params;
   try {
-    const { status, message, team } = await findTeamById(teamId);
+    const { status, message, team, teamPlayers } = await findTeamById(teamId);
     res.send({
       status: status,
       message: message,
       team,
+      teamPlayers,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
