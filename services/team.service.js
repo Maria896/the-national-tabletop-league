@@ -190,10 +190,18 @@ export const getTeams = async (userId) => {
   console.log(checkUser);
   if (checkUser.globalRole === "super admin") {
     const teams = await Team.find();
+    let teamDetailAndPlayerList = [];
+    for (const team of teams) {
+      const teamDetail = {
+        team: team,
+        teamPlayers:await getTeamPlayers(team._id) 
+      };
+      teamDetailAndPlayerList.push(teamDetail);
+    } 
     return {
       status: 200,
       message: "All Teams..",
-      teams,
+      teamDetailAndPlayerList,
     };
   } else if (checkUser.globalRole === "player") {
     const userTeams = await UserTeam.find({ userId: userId });
@@ -203,16 +211,19 @@ export const getTeams = async (userId) => {
 
     const teamIds = getTeamIds(userTeams);
     const teams = await Team.find({ _id: { $in: teamIds } });
-
+    let teamDetailAndPlayerList = [];
     for (const team of teams) {
-      const teamPlayers = getTeamPlayers(team._id);
-      team.teamPlayers = teamPlayers;
+      const teamDetail = {
+        team: team,
+        teamPlayers:await getTeamPlayers(team._id) 
+      };
+      teamDetailAndPlayerList.push(teamDetail);
     }
 
     return {
       status: 200,
       message: "All Teams..",
-      teams,
+      teamDetailAndPlayerList,
     };
   }
 };
@@ -241,18 +252,8 @@ export const getTeamPlayers = async (teamId) => {
     const userIds = userTeams.map((teamPlayer) => teamPlayer.userId);
 
     const teamPlayers = await User.find({ _id: { $in: userIds } });
-    return {
-      status: 200,
-      message: "Team Players found..",
-      teamPlayers,
-    };
-  } else {
-    throw {
-      status: 404,
-      success: false,
-      message: "Team not found",
-    };
-  }
+    return teamPlayers;
+}
 };
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
