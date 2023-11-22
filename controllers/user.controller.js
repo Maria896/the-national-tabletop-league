@@ -55,11 +55,12 @@ export const verifyEmail = async (req, res) => {
 export const loginUser = async (req, res) => {
   const { email, password, token } = req.body;
   try {
-    const { status, message, token } = await login(email, password);
+    const { status, message, token, user } = await login(email, password);
     res.send({
       status: status,
       message: message,
       token: token,
+      user: user,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

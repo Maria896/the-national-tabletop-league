@@ -121,6 +121,7 @@ export const login = async (email, password) => {
     status: 200,
     message: "Login successful.",
     token: token,
+    user: user,
   };
 };
 export const getUsers = async (userId) => {
