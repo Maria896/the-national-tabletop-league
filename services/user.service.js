@@ -53,7 +53,7 @@ export const register = async (
       from: "admin@gmail.com",
       subject: "Verify Account",
       html: `<h2>Verify Account</h2>
-       <p><a href="http://localhost:${process.env.PORT}/api/user/verify-email/${verificationToken}">Click Here to verify your account</a></p>
+       <p><a href="http://localhost:3000/api/user/verify-email/${verificationToken}">Click Here to verify your account</a></p>
       `,
     },
     (error, email) => {
