@@ -146,11 +146,11 @@ export const getAllTeams = async (req, res) => {
   const userId = req.userId;
   console.log(userId);
   try {
-    const { status, message, teamDetailAndPlayerList } = await getTeams(userId);
+    const { status, message, teams } = await getTeams(userId);
     res.send({
       status: status,
       message: message,
-      teamDetailAndPlayerList,
+      teams,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

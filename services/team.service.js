@@ -189,46 +189,64 @@ export const leaveTeam = async (teamId, loggedInUserId) => {
 };
 export const getTeams = async (userId) => {
   const checkUser = await User.findOne({ _id: userId });
-  console.log(checkUser);
   if (checkUser.globalRole === "super admin") {
     const teams = await Team.find();
-    let teamDetailAndPlayerList = [];
-    for (const team of teams) {
-      const teamDetail = {
-        team: team,
-        teamPlayers: await getTeamPlayers(team._id),
-      };
-      teamDetailAndPlayerList.push(teamDetail);
-    }
     return {
       status: 200,
       message: "All Teams..",
-      teamDetailAndPlayerList,
+      teams,
     };
   } else if (checkUser.globalRole === "player") {
-    const userTeams = await UserTeam.find({ userId: userId });
-    const getTeamIds = (teams) => {
-      return teams.map((team) => team.teamId);
-    };
-
-    const teamIds = getTeamIds(userTeams);
-    const teams = await Team.find({ _id: { $in: teamIds } });
-    let teamDetailAndPlayerList = [];
-    for (const team of teams) {
-      const teamDetail = {
-        team: team,
-        teamPlayers: await getTeamPlayers(team._id),
-      };
-      teamDetailAndPlayerList.push(teamDetail);
-    }
-
+    const teams = await UserTeam.find({ userId: userId });
     return {
       status: 200,
       message: "All Teams..",
-      teamDetailAndPlayerList,
+      teams,
     };
   }
 };
+// export const getTeams = async (userId) => {
+//   const checkUser = await User.findOne({ _id: userId });
+//   console.log(checkUser);
+//   if (checkUser.globalRole === "super admin") {
+//     const teams = await Team.find();
+//     let teamDetailAndPlayerList = [];
+//     for (const team of teams) {
+//       const teamDetail = {
+//         team: team,
+//         teamPlayers: await getTeamPlayers(team._id),
+//       };
+//       teamDetailAndPlayerList.push(teamDetail);
+//     }
+//     return {
+//       status: 200,
+//       message: "All Teams..",
+//       teamDetailAndPlayerList,
+//     };
+//   } else if (checkUser.globalRole === "player") {
+//     const userTeams = await UserTeam.find({ userId: userId });
+//     const getTeamIds = (teams) => {
+//       return teams.map((team) => team.teamId);
+//     };
+
+//     const teamIds = getTeamIds(userTeams);
+//     const teams = await Team.find({ _id: { $in: teamIds } });
+//     let teamDetailAndPlayerList = [];
+//     for (const team of teams) {
+//       const teamDetail = {
+//         team: team,
+//         teamPlayers: await getTeamPlayers(team._id),
+//       };
+//       teamDetailAndPlayerList.push(teamDetail);
+//     }
+
+//     return {
+//       status: 200,
+//       message: "All Teams..",
+//       teamDetailAndPlayerList,
+//     };
+//   }
+// };
 export const findTeamById = async (teamId) => {
   const team = await Team.findOne({ _id: teamId });
   const teamPlayers = getTeamPlayers(teamId);
