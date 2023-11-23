@@ -197,7 +197,13 @@ export const getTeams = async (userId) => {
       teams,
     };
   } else if (checkUser.globalRole === "player") {
-    const teams = await UserTeam.find({ userId: userId });
+    const userTeams = await UserTeam.find({ userId: userId });
+    const getTeamIds = (teams) => {
+      return teams.map((team) => team.teamId);
+    };
+
+    const teamIds = getTeamIds(userTeams);
+    const teams = await Team.find({ _id: { $in: teamIds } });
     return {
       status: 200,
       message: "All Teams..",
