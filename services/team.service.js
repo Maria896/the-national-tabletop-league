@@ -123,7 +123,9 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
     from: "admin@gmail.com",
     to: email,
     subject: "Welcome To Our Organization",
-    html: `<p>Sending Invitation to join NTL. Token : ${verificationToken}</p>`,
+    html: `<p>Sending Invitation to join NTL. Token :
+    <a href="api/team/invite-new-member/${findTeam._id}">${verificationToken}</a></p>
+    `,
   });
   const userId = findUser._id;
   const filter = { _id: userId };
@@ -194,10 +196,10 @@ export const getTeams = async (userId) => {
     for (const team of teams) {
       const teamDetail = {
         team: team,
-        teamPlayers:await getTeamPlayers(team._id) 
+        teamPlayers: await getTeamPlayers(team._id),
       };
       teamDetailAndPlayerList.push(teamDetail);
-    } 
+    }
     return {
       status: 200,
       message: "All Teams..",
@@ -215,7 +217,7 @@ export const getTeams = async (userId) => {
     for (const team of teams) {
       const teamDetail = {
         team: team,
-        teamPlayers:await getTeamPlayers(team._id) 
+        teamPlayers: await getTeamPlayers(team._id),
       };
       teamDetailAndPlayerList.push(teamDetail);
     }
@@ -253,7 +255,7 @@ export const getTeamPlayers = async (teamId) => {
 
     const teamPlayers = await User.find({ _id: { $in: userIds } });
     return teamPlayers;
-}
+  }
 };
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
