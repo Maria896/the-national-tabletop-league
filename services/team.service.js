@@ -124,7 +124,7 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
     to: email,
     subject: "Welcome To Our Organization",
     html: `<p>Sending Invitation to join NTL. Token :
-    <a href="api/team/invite-new-member/${findTeam._id}">${verificationToken}</a></p>
+    <a href="api/team/accept-invitation/${verificationToken}/${findTeam._id}">${verificationToken}</a></p>
     `,
   });
   const userId = findUser._id;
