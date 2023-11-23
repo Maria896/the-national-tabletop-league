@@ -98,12 +98,14 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
   if (!findUser) {
     throw {
       status: 401,
+      success: false,
       message: "Send Registration link",
     };
   }
   if (!findTeam || findTeam.creatorId != teamCreatorId) {
     throw {
       status: 401,
+      success: false,
       message: "Team not found",
     };
   }
@@ -124,7 +126,7 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
     to: email,
     subject: "Welcome To Our Organization",
     html: `<p>Sending Invitation to join NTL. Token :
-    <a href="api/team/accept-invitation/${verificationToken}/${findTeam._id}">${verificationToken}</a></p>
+    <a href="localhost:3000/api/team/accept-invitation/${verificationToken}/${findTeam._id}">${verificationToken}</a></p>
     `,
   });
   const userId = findUser._id;
