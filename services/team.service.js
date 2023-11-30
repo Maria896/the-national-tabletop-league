@@ -257,7 +257,7 @@ export const getTeams = async (userId) => {
 // };
 export const findTeamById = async (teamId) => {
   const team = await Team.findOne({ _id: teamId });
-  const teamPlayers = getTeamPlayers(teamId);
+  const teamPlayers = await getTeamPlayers(teamId);
   if (team) {
     return {
       status: 200,
