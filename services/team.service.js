@@ -258,12 +258,23 @@ export const getTeams = async (userId) => {
 export const findTeamById = async (teamId) => {
   const team = await Team.findOne({ _id: teamId });
   const teamPlayers = await getTeamPlayers(teamId);
+  let teamData = {
+    _id: team._id,
+    teamName : team.teamName,
+    elo: team.elo,
+    region:team.region,
+    events:team.events,
+    invitedMembers:team.invitedMembers,
+    teamPlayers,
+
+  }
+
   if (team) {
     return {
       status: 200,
       message: "Team found..",
-      team,
-      teamPlayers,
+      teamData,
+      
     };
   } else {
     throw {
@@ -274,14 +285,40 @@ export const findTeamById = async (teamId) => {
   }
 };
 export const getTeamPlayers = async (teamId) => {
-  const team = await Team.findOne({ _id: teamId });
-  if (team) {
-    const userTeams = await UserTeam.find({ teamId: teamId });
-    const userIds = userTeams.map((teamPlayer) => teamPlayer.userId);
+  // const team = await Team.findOne({ _id: teamId });
+  // if (team) {
+  //   const userTeams = await UserTeam.find({ teamId: teamId });
+  //   const userIds = userTeams.map((teamPlayer) => teamPlayer.userId);
 
-    const teamPlayers = await User.find({ _id: { $in: userIds } });
-    return teamPlayers;
-  }
+  //   const teamPlayers = await User.find({ _id: { $in: userIds }},{ _id: 1, firstName: 1,email:1 } );
+    
+  //   return teamPlayers;
+  // }
+  const pipeline = [
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: '_id',
+        as: 'userData'
+      }
+    },
+    {
+      $unwind: '$userData'
+    },
+    {
+      $project: {
+        _id: '$userData._id',
+        firstName: '$userData.firstName',
+        lastName: '$userData.lastName',
+        email: '$userData.email',
+        role: 1 // Assuming 'role' is a field in the UserTeam model
+      }
+    }
+  ];
+  
+  const players = await UserTeam.aggregate(pipeline);
+  return players
 };
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
