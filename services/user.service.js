@@ -24,7 +24,7 @@ export const register = async (
       message: "User with this email is already exists",
     };
   } else if (user && user.isVerified == false) {
-    await userModel.findOneAndDelete({ email });
+    await User.findOneAndDelete({ email });
   }
   const hashPassword = hashedPassword(password);
   const verificationToken = generateVerificationToken();
