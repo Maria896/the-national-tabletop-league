@@ -116,6 +116,8 @@ export const acceptInvitationFromOwner = async (req, res) => {
       status: status,
       message: message,
     });
+    const redirectURL = '/dashboard';
+    res.redirect(redirectURL);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
