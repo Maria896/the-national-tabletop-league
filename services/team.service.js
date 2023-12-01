@@ -296,6 +296,9 @@ export const getTeamPlayers = async (teamId) => {
   // }
   const pipeline = [
     {
+      {
+        $match: { teamId: teamId }
+      },
       $lookup: {
         from: 'users',
         localField: 'userId',
