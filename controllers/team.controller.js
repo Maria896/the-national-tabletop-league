@@ -110,7 +110,7 @@ export const inviteNewTeamMember = async (req, res) => {
 export const acceptInvitationFromOwner = async (req, res) => {
   try {
     const { token, teamId } = req.params;
-    console.log(token);
+    // console.log(token);
     const { status, message } = await acceptInvitation(token, teamId);
     res.send({
       status: status,

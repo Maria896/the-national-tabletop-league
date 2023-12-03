@@ -127,13 +127,18 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
     to: email,
     subject: "Welcome To Our Organization",
     html: `<p>Sending Invitation to join NTL. Token :
-    <a href="localhost:3000/api/team/accept-invitation/${verificationToken}/${findTeam._id}">${verificationToken}</a></p>
+    <a href="localhost:${process.env.PORT}/api/team/accept-invitation/${verificationToken}/${findTeam._id}">${verificationToken}</a></p>
     `,
   });
   const userId = findUser._id;
   const filter = { _id: userId };
   const update = { verificationToken: verificationToken };
   await User.updateOne(filter, update);
+  const filterTeam = { _id: teamId };
+  const updateTeam = {
+    invitedMembers: [...findTeam.invitedMembers, findUser.email],
+  };
+  await Team.updateOne(filterTeam, updateTeam);
   return {
     status: 201,
     message: "Invitation sent.",
@@ -142,6 +147,7 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
 
 export const acceptInvitation = async (token, teamId) => {
   const user = await User.findOne({ verificationToken: token });
+  const findTeam = await Team.findOne({ _id: teamId });
 
   if (!user) {
     throw {
@@ -159,7 +165,14 @@ export const acceptInvitation = async (token, teamId) => {
       teamId: teamId,
       role: "player",
     });
-    await newmember.save();
+
+    const filterTeam = { _id: teamId };
+    const updateTeam = {
+      invitedMembers: findTeam.invitedMembers.filter(
+        (member) => member.email !== user.email
+      ),
+    };
+    await Team.updateOne(filterTeam, updateTeam);
     return {
       status: 201,
       success: true,
