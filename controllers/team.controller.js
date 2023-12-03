@@ -33,7 +33,6 @@ export const createTeam = async (req, res) => {
     res.send({
       status: status,
       message: message,
-      captain,
     });
   } catch (error) {
     res.status(500).send({ message: error.message });
