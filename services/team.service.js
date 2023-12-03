@@ -4,6 +4,7 @@ import { transporter } from "../utils/email.js";
 import crypto from "crypto";
 import mongoose from "mongoose";
 import UserTeam from "../models/userteam.model.js";
+const ObjectId = mongoose.Types.ObjectId;
 
 export const createNewTeam = async (teamName, logo, elo, region, creatorId) => {
   let team;
@@ -31,7 +32,7 @@ export const createNewTeam = async (teamName, logo, elo, region, creatorId) => {
       message: "Error while creating team",
     };
   }
-  await UserTeam.create({
+  const captain = await UserTeam.create({
     userId: team.creatorId,
     teamId: team._id,
     role: "captain",
@@ -258,6 +259,7 @@ export const getTeams = async (userId) => {
 export const findTeamById = async (teamId) => {
   const team = await Team.findOne({ _id: teamId });
   const teamPlayers = await getTeamPlayers(teamId);
+  console.log(teamPlayers);
   let teamData = {
     _id: team._id,
     teamName: team.teamName,
@@ -265,7 +267,7 @@ export const findTeamById = async (teamId) => {
     region: team.region,
     events: team.events,
     invitedMembers: team.invitedMembers,
-    teamPlayers,
+    teamPlayers: teamPlayers,
   };
 
   if (team) {
@@ -292,9 +294,10 @@ export const getTeamPlayers = async (teamId) => {
 
   //   return teamPlayers;
   // }
+
   const pipeline = [
     {
-      $match: { teamId: teamId },
+      $match: { teamId: new ObjectId(teamId) },
     },
     {
       $lookup: {
@@ -318,6 +321,7 @@ export const getTeamPlayers = async (teamId) => {
     },
   ];
   const players = await UserTeam.aggregate(pipeline);
+  console.log(players);
   return players;
 };
 // Send Email to Team Member

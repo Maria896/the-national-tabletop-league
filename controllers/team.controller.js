@@ -33,6 +33,7 @@ export const createTeam = async (req, res) => {
     res.send({
       status: status,
       message: message,
+      captain,
     });
   } catch (error) {
     res.status(500).send({ message: error.message });
@@ -116,7 +117,7 @@ export const acceptInvitationFromOwner = async (req, res) => {
       status: status,
       message: message,
     });
-    const redirectURL = '/dashboard';
+    const redirectURL = "/dashboard";
     res.redirect(redirectURL);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -169,7 +170,7 @@ export const getTeamById = async (req, res) => {
     res.send({
       status: status,
       message: message,
-      teamData
+      teamData,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
