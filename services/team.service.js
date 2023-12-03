@@ -260,21 +260,19 @@ export const findTeamById = async (teamId) => {
   const teamPlayers = await getTeamPlayers(teamId);
   let teamData = {
     _id: team._id,
-    teamName : team.teamName,
+    teamName: team.teamName,
     elo: team.elo,
-    region:team.region,
-    events:team.events,
-    invitedMembers:team.invitedMembers,
+    region: team.region,
+    events: team.events,
+    invitedMembers: team.invitedMembers,
     teamPlayers,
-
-  }
+  };
 
   if (team) {
     return {
       status: 200,
       message: "Team found..",
       teamData,
-      
     };
   } else {
     throw {
@@ -291,37 +289,36 @@ export const getTeamPlayers = async (teamId) => {
   //   const userIds = userTeams.map((teamPlayer) => teamPlayer.userId);
 
   //   const teamPlayers = await User.find({ _id: { $in: userIds }},{ _id: 1, firstName: 1,email:1 } );
-    
+
   //   return teamPlayers;
   // }
   const pipeline = [
     {
-      {
-        $match: { teamId: teamId }
-      },
-      $lookup: {
-        from: 'users',
-        localField: 'userId',
-        foreignField: '_id',
-        as: 'userData'
-      }
+      $match: { teamId: teamId },
     },
     {
-      $unwind: '$userData'
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userData",
+      },
+    },
+    {
+      $unwind: "$userData",
     },
     {
       $project: {
-        _id: '$userData._id',
-        firstName: '$userData.firstName',
-        lastName: '$userData.lastName',
-        email: '$userData.email',
-        role: 1 // Assuming 'role' is a field in the UserTeam model
-      }
-    }
+        _id: "$userData._id",
+        firstName: "$userData.firstName",
+        lastName: "$userData.lastName",
+        email: "$userData.email",
+        role: 1,
+      },
+    },
   ];
-  
   const players = await UserTeam.aggregate(pipeline);
-  return players
+  return players;
 };
 // Send Email to Team Member
 const sendEmailToTeamMember = async (to) => {
