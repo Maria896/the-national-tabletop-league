@@ -112,12 +112,12 @@ export const acceptInvitationFromOwner = async (req, res) => {
     const { token, teamId } = req.params;
     // console.log(token);
     const { status, message } = await acceptInvitation(token, teamId);
+    const redirectURL = "localhost:3000/";
+    res.redirect(redirectURL);
     res.send({
       status: status,
       message: message,
     });
-    const redirectURL = "/dashboard";
-    res.redirect(redirectURL);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
