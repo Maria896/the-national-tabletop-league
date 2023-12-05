@@ -14,6 +14,7 @@ import {
 export const registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, region, state, password } = req.body;
+    const { token, teamId } = req.query;
 
     const { status, message } = await register(
       firstName,
@@ -21,7 +22,9 @@ export const registerUser = async (req, res) => {
       email,
       region,
       state,
-      password
+      password,
+      token,
+      teamId
     );
     res.send({
       status: status,

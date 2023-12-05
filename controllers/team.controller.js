@@ -94,7 +94,6 @@ export const inviteNewTeamMember = async (req, res) => {
       teamId,
       teamCreatorId
     );
-    console.log(status);
     res.send({
       status: status,
       message: message,

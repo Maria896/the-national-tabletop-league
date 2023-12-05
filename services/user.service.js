@@ -3,6 +3,8 @@ import crypto from "crypto";
 import Jwt from "jsonwebtoken";
 import { transporter } from "../utils/email.js";
 import User from "../models/user.model.js";
+import UserTeam from "../models/userteam.model.js";
+import Team from "../models/team.model.js";
 import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client(process.env.Client_ID);
@@ -13,7 +15,9 @@ export const register = async (
   email,
   region,
   state,
-  password
+  password,
+  verificationToken,
+  teamId
 ) => {
   let user;
 
@@ -27,7 +31,7 @@ export const register = async (
     await User.findOneAndDelete({ email });
   }
   const hashPassword = hashedPassword(password);
-  const verificationToken = generateVerificationToken();
+  const verificationTokenForNewUser = generateVerificationToken();
 
   user = await User.create({
     firstName,
@@ -46,30 +50,59 @@ export const register = async (
       message: "Error while creating account",
     };
   }
-
-  transporter.sendMail(
-    {
-      to: user.email,
-      from: "admin@gmail.com",
-      subject: "Verify Account",
-      html: `<h2>Verify Account</h2>
-       <p><a href="http://localhost:3000/api/user/verify-email/${verificationToken}">Click Here to verify your account</a></p>
-      `,
-    },
-    (error, email) => {
-      if (error) {
-        throw {
-          status: 400,
-          message: "error while sending email",
-        };
+  if (!verificationToken) {
+    transporter.sendMail(
+      {
+        to: user.email,
+        from: "admin@gmail.com",
+        subject: "Verify Account",
+        html: `<h2>Verify Account</h2>
+         <p><a href="http://localhost:3000/api/user/verify-email/${verificationTokenForNewUser}">Click Here to verify your account</a></p>
+        `,
+      },
+      (error, email) => {
+        if (error) {
+          throw {
+            status: 400,
+            message: "error while sending email",
+          };
+        }
       }
-    }
-  );
-  return {
-    status: 201,
-    message: "Account varification email has been sent to you",
-    token: verificationToken,
-  };
+    );
+    return {
+      status: 201,
+      message: "Account varification email has been sent to you",
+      token: verificationToken,
+    };
+  }
+  if (verificationToken && teamId) {
+    const verifiedUser = await User.findByIdAndUpdate(
+      user._id,
+      { isVerified: true },
+      {
+        new: true,
+      }
+    );
+    const findTeam = await Team.findOne({ _id: teamId });
+    const newmember = await UserTeam.create({
+      userId: user._id,
+      teamId: teamId,
+      role: "player",
+    });
+
+    const filterTeam = { _id: teamId };
+    const updateTeam = {
+      invitedMembers: findTeam.invitedMembers.filter(
+        (member) => member.email !== user.email
+      ),
+    };
+    await Team.updateOne(filterTeam, updateTeam);
+    return {
+      status: 201,
+      success: true,
+      message: "Request accepted",
+    };
+  }
 };
 export const verifyUserEmail = async (token) => {
   const user = await User.findOne({

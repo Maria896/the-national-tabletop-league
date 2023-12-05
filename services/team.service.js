@@ -96,18 +96,31 @@ export const removeTeamMember = async (userId, teamId, loggedInUserId) => {
 export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
   const findUser = await User.findOne({ email: email });
   const findTeam = await Team.findOne({ _id: teamId });
-  if (!findUser) {
-    throw {
-      status: 401,
-      success: false,
-      message: "Send Registration link",
-    };
-  }
-  if (!findTeam || findTeam.creatorId != teamCreatorId) {
+
+  if (!findTeam) {
     throw {
       status: 401,
       success: false,
       message: "Team not found",
+    };
+  }
+  if (!findUser) {
+    const verificationToken = generateVerificationToken();
+
+    const registerLink = `http://localhost:3000/register?token=${verificationToken}&teamId=${teamId}`;
+
+    await transporter.sendMail({
+      from: "admin@gmail.com",
+      to: email,
+      subject: "Welcome To Our Organization",
+      html: `<p>Sending Invitation to join NTL Team. ${findTeam.teamName}
+      <a href="${registerLink}">CLICK HERE</a></p>
+      `,
+    });
+    return {
+      status: 401,
+      message: "User not found. Registration link sent to join the team.",
+      token: verificationToken,
     };
   }
   const findTeamMember = await UserTeam.findOne({
@@ -125,9 +138,9 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
   await transporter.sendMail({
     from: "admin@gmail.com",
     to: email,
-    subject: "Welcome To Our Organization",
-    html: `<p>Sending Invitation to join NTL. Token :
-    <a href="localhost:${process.env.PORT}/api/team/accept-invitation/${verificationToken}/${findTeam._id}">${verificationToken}</a></p>
+    subject: "Welcome To Our NTL Team",
+    html: `<p>Sending Invitation to join NTL :
+    <a href="localhost:3000/team-invitation">Click here for to accept or reject invition to join the team ${findTeam.teamName} </a></p>
     `,
   });
   const userId = findUser._id;
@@ -142,6 +155,7 @@ export const inviteTeamMember = async (email, teamId, teamCreatorId) => {
   return {
     status: 201,
     message: "Invitation sent.",
+    token: verificationToken,
   };
 };
 
@@ -169,7 +183,7 @@ export const acceptInvitation = async (token, teamId) => {
     const filterTeam = { _id: teamId };
     const updateTeam = {
       invitedMembers: findTeam.invitedMembers.filter(
-        (member) => member.email !== user.email
+        (email) => email !== user.email
       ),
     };
     await Team.updateOne(filterTeam, updateTeam);
