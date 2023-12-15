@@ -38,11 +38,11 @@ export const createEvent = async (req, res) => {
 // Desc     :   Add team in an event
 export const addNewTeam = async (req, res) => {
   try {
-    const { teamName } = req.body;
+    const { teams } = req.body;
     const { eventId } = req.params;
     const userId = req.userId;
 
-    const { status, message } = await addTeam(userId, teamName, eventId);
+    const { status, message } = await addTeam(userId, teams, eventId);
     res.send({
       status: status,
       message: message,

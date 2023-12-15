@@ -1,7 +1,11 @@
 import Event from "../models/event.model.js";
 import Team from "../models/team.model.js";
+import moment from "moment";
+import mongoose from "mongoose";
 import { isCaptain } from "../middleware/captain.middleware.js";
 
+// const ObjectId = new mongoose.Types.ObjectId();
+const { ObjectId } = mongoose.Types;
 export const createNewEvent = async (
   name,
   date,
@@ -11,13 +15,23 @@ export const createNewEvent = async (
   creatorId
 ) => {
   let event;
-
+  const formattedDate = moment(date, "DD/MM/YYYY", true);
+  const formattedRosterSubmissionDate = moment(
+    rosterSubmissionDate,
+    "DD/MM/YYYY",
+    true
+  );
+  const formattedRosterRevealDate = moment(
+    rosterRevealDate,
+    "DD/MM/YYYY",
+    true
+  );
   event = await Event.create({
     name,
-    date,
+    date: formattedDate,
     location,
-    rosterSubmissionDate,
-    rosterRevealDate,
+    rosterSubmissionDate: formattedRosterSubmissionDate,
+    rosterRevealDate: formattedRosterRevealDate,
     creatorId,
   });
 
@@ -36,9 +50,9 @@ export const createNewEvent = async (
   };
 };
 
-export const addTeam = async (userId, teamName, eventId) => {
-  const findEvent = await Event.findOne({ _id: eventId });
-  if (!findEvent) {
+export const addTeam = async (userId, teams, eventId) => {
+  const foundEvent = await Event.findOne({ _id: eventId });
+  if (!foundEvent) {
     throw {
       status: 409,
       success: false,
@@ -46,25 +60,49 @@ export const addTeam = async (userId, teamName, eventId) => {
     };
   }
 
-  const findTeam = await Team.findOne({ teamName: teamName });
-  if (!findTeam) {
+  const foundTeams = await Team.find({ teamName: { $in: teams } });
+  const foundTeamIds = foundTeams.map((team) => team._id);
+
+  const foundTeamNames = foundTeams.map((team) => team.teamName);
+
+  const missingTeams = teams.filter((name) => !foundTeamNames.includes(name));
+  console.log(missingTeams);
+  if (missingTeams.length > 0) {
     throw {
       status: 409,
       success: false,
-      message: "Team not found...",
+      message: `Teams not found: ${missingTeams.join(", ")}`,
     };
   }
+  const existingTeams = foundEvent.participatingTeams.filter((teamId) =>
+    foundTeamIds.some((foundId) => foundId.equals(teamId))
+  );
 
-  if (!findEvent.participatingTeams.includes(findTeam._id)) {
-    const newTeams = [...findEvent.participatingTeams, findTeam._id];
-    const addTeamInEvent = await findEvent.findByIdAndUpdate(
-      eventId,
-      { participatingTeams: newTeams },
-      {
-        new: true,
-      }
-    );
-    if (!addTeamInEvent) {
+  if (existingTeams.length < 0) {
+    throw {
+      status: 409,
+      success: false,
+      message: `Teams already exist: ${existingTeams.join(", ")}`,
+    };
+  } else {
+    // const addTeamInEvent = await Event.findByIdAndUpdate(
+    //   eventId,
+    //   { $push: { participatingTeams: foundTeamIds } },
+    //   {
+    //     new: true,
+    //   }
+    // );
+    const objectIds = foundTeamIds.map((id) => new ObjectId(id));
+    const filter = {
+      _id: { $in: objectIds },
+    };
+    const update = { event: foundEvent._id };
+
+    const result = await Team.updateMany(filter, update, {
+      new: true,
+    });
+    console.log(result);
+    if (!result) {
       throw {
         status: 409,
         success: false,
@@ -75,12 +113,6 @@ export const addTeam = async (userId, teamName, eventId) => {
       status: 200,
       success: true,
       message: "Team added successfully..",
-    };
-  } else {
-    throw {
-      status: 409,
-      success: false,
-      message: "Already exists...",
     };
   }
 };
@@ -150,7 +182,7 @@ export const createRoaster = async (userId, eventId, teamId, teamMembers) => {
     if (checkTeamMember) {
       const filter = { _id: eventId, creatorId: userId };
       const newUser = {
-        userId: userId
+        userId: userId,
       };
       const update = {
         $push: {
@@ -161,7 +193,7 @@ export const createRoaster = async (userId, eventId, teamId, teamMembers) => {
         if (err) {
           console.error(err);
         } else {
-          console.log(result); 
+          console.log(result);
         }
       });
     }
