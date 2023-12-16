@@ -78,29 +78,29 @@ export const addTeam = async (userId, teams, eventId) => {
     foundTeamIds.some((foundId) => foundId.equals(teamId))
   );
 
-  if (existingTeams.length < 0) {
+  if (existingTeams.length > 0) {
     throw {
       status: 409,
       success: false,
       message: `Teams already exist: ${existingTeams.join(", ")}`,
     };
   } else {
-    // const addTeamInEvent = await Event.findByIdAndUpdate(
-    //   eventId,
-    //   { $push: { participatingTeams: foundTeamIds } },
-    //   {
-    //     new: true,
-    //   }
-    // );
+    const addTeamInEvent = await Event.findByIdAndUpdate(
+      eventId,
+      { $push: { participatingTeams: foundTeamIds } },
+      {
+        new: true,
+      }
+    );
     const objectIds = foundTeamIds.map((id) => new ObjectId(id));
     const filter = {
       _id: { $in: objectIds },
     };
-    const update = { event: foundEvent._id };
+    const update = {
+      $push: { events: foundEvent._id },
+    };
 
-    const result = await Team.updateMany(filter, update, {
-      new: true,
-    });
+    const result = await Team.updateMany(filter, update);
     console.log(result);
     if (!result) {
       throw {
@@ -117,7 +117,7 @@ export const addTeam = async (userId, teams, eventId) => {
   }
 };
 
-export const removeTeam = async (userId, teamName, eventId) => {
+export const removeTeam = async (userId, teams, eventId) => {
   const findEvent = await Event.findOne({
     $and: [{ _id: eventId }, { _id: userId }],
   });
